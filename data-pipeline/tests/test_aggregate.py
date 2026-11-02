@@ -42,3 +42,10 @@ def test_viirs_confianza_por_letra(tmp_path):
     out, n = aggregate.aggregate_source("VIIRS_SNPP_SP", tmp_path / "raw", tmp_path / "out", cell=0.25)
     assert n == 1
     assert read(out)[0] == ("2020-01-01", -12.125, -75.125, 3, 2, 6.0)
+
+def test_filas_duplicadas_entre_tramos_se_cuentan_una_vez(tmp_path):
+    fila = "-12.01,-75.02,2020-01-01,80,10.0"
+    write_csv(tmp_path / "raw" / "MODIS_SP" / "a.csv", [fila])
+    write_csv(tmp_path / "raw" / "MODIS_SP" / "b.csv", [fila])  # tramo solapado
+    out, n = aggregate.aggregate_source("MODIS_SP", tmp_path / "raw", tmp_path / "out", cell=0.25)
+    assert read(out)[0][3] == 1

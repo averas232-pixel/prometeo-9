@@ -55,7 +55,7 @@ def aggregate_source(source, raw_dir=Path("data/raw"), out_dir=Path("data/proces
             count(*) AS n_det,
             count(*) FILTER (WHERE {conf_ok_sql(source)}) AS n_conf,
             sum(TRY_CAST(frp AS DOUBLE)) AS frp_sum
-          FROM read_csv('{pattern}', all_varchar = true, union_by_name = true)
+          FROM (SELECT DISTINCT * FROM read_csv('{pattern}', all_varchar = true, union_by_name = true))
           GROUP BY 1, 2, 3, 4
           ORDER BY 1, 3, 4
         ) TO '{out.as_posix()}' (FORMAT PARQUET)
