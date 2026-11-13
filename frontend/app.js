@@ -12,14 +12,13 @@ Chart.defaults.font.size = 10;
 const esriUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
 const gibsUrl = 'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_SNPP_CorrectedReflectance_TrueColor/default/2019-08-25/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg';
 
-// 1. ZOOM MINIMO A 4 Y LIMITES ESTRICTOS
 const map = L.map('map', { 
   zoomControl: false, 
   maxZoom: 9, 
   minZoom: 4, 
   maxBounds: [[-90, -180], [90, 180]],
   maxBoundsViscosity: 1.0
-}).setView([-12, -75], 4);
+}).setView([-12, -60], 4); // Centrado inicial en Sudamérica
 
 let baseLayer = L.tileLayer(esriUrl, { attribution: 'Tiles &copy; Esri' }).addTo(map);
 L.control.zoom({ position: 'bottomright' }).addTo(map);
@@ -122,6 +121,12 @@ async function loadCells() {
       return;
     }
 
+    // LÓGICA DE AUTO-CENTRADO: Mueve el mapa a la zona con más incendios
+    if(cells.length > 0) {
+        let maxFire = cells[0]; // Como vienen ordenados por total, el primero es el más grande
+        map.flyTo([maxFire.lat, maxFire.lon], 4, { duration: 1.5 });
+    }
+
     if(currentLayerType === 'heat') {
       const heatData = cells.map(c => [c.lat, c.lon, Math.min(c.total / 5, 1)]);
       const heatLayer = L.heatLayer(heatData, { radius: 25, blur: 15, maxZoom: 9, gradient: {0.4: '#45A6C8', 0.7: '#D98E2B', 1: '#E05252'} });
@@ -134,19 +139,11 @@ async function loadCells() {
       });
       currentLayer = L.layerGroup([heatLayer, clickLayer]).addTo(map);
     } else {
-      // 3. MODO PIXELES MEJORADO (Estilo NASA FIRMS)
       const pixelLayer = L.layerGroup();
       cells.forEach(c => {
-        // Colores institucionales para el fuego: Amarillo/Naranja/Rojo
         let fillColor = c.total > 8 ? '#ff3333' : (c.total > 4 ? '#ff8c00' : '#ffff00');
         let borderColor = c.total > 4 ? '#ff0000' : '#ffa500';
-        
-        L.rectangle([[c.lat - 0.125, c.lon - 0.125], [c.lat + 0.125, c.lon + 0.125]], { 
-          color: borderColor, 
-          weight: 0.5, 
-          fillColor: fillColor, 
-          fillOpacity: 0.85 
-        })
+        L.rectangle([[c.lat - 0.125, c.lon - 0.125], [c.lat + 0.125, c.lon + 0.125]], { color: borderColor, weight: 0.5, fillColor: fillColor, fillOpacity: 0.85 })
         .bindTooltip(`<div style="color:var(--text-secondary); font-size:10px; margin-bottom:4px">PÍXEL DE FUEGO</div><div>MODIS: <b style="color:var(--accent-amber)">${c.modis}</b> | VIIRS: <b style="color:#A77BF3">${c.viirs}</b></div>`, {className: 'leaflet-tooltip-custom'})
         .on('click', () => loadTimeseries(c.lat, c.lon))
         .addTo(pixelLayer);
