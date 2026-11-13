@@ -31,7 +31,14 @@ def stats():
 
 @app.get("/dates")
 def dates():
-    return [str(r[0]) for r in q(f"SELECT DISTINCT date FROM read_parquet('{P}') ORDER BY 1")]
+    # Solo devuelve fechas donde hubo al menos 1 detección con confianza >= 3
+    rows = q(f"""
+        SELECT DISTINCT date 
+        FROM read_parquet('{P}') 
+        WHERE n_conf_total >= 3 
+        ORDER BY date
+    """)
+    return [str(r[0]) for r in rows]
 
 
 @app.get("/cells")
