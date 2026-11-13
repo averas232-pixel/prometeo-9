@@ -1,0 +1,116 @@
+﻿===== 1. RUTA Y REPO =====
+
+Path         
+----         
+C:\prometeo-9
+
+
+origin	https://github.com/averas232-pixel/prometeo-9.git (fetch)
+origin	https://github.com/averas232-pixel/prometeo-9.git (push)
+
+===== 2. RAMAS =====
+  develop                                       720a18f [origin/develop] Merge pull request #10 from averas232-pixel/feat/antony/ingesta-firms
+* feat/antony/agregacion-parquet                6caa2a0 [origin/feat/antony/agregacion-parquet] fix(pipeline): ignorar detecciones duplicadas entre tramos solapados
+  feat/antony/docs-onboarding                   907d1a6 [origin/feat/antony/docs-onboarding] docs: esqueleto de documentación, onboarding y atajos de ejecución
+  feat/antony/ingesta-firms                     6b04d74 [origin/feat/antony/ingesta-firms] feat(pipeline): descarga reanudable de detecciones FIRMS y documentación de datos
+  main                                          36b0d49 [origin/main] chore: estructura inicial del repositorio
+  remotes/origin/HEAD                           -> origin/main
+  remotes/origin/develop                        720a18f Merge pull request #10 from averas232-pixel/feat/antony/ingesta-firms
+  remotes/origin/feat/antony/agregacion-parquet 6caa2a0 fix(pipeline): ignorar detecciones duplicadas entre tramos solapados
+  remotes/origin/feat/antony/docs-onboarding    907d1a6 docs: esqueleto de documentación, onboarding y atajos de ejecución
+  remotes/origin/feat/antony/ingesta-firms      6b04d74 feat(pipeline): descarga reanudable de detecciones FIRMS y documentación de datos
+  remotes/origin/main                           36b0d49 chore: estructura inicial del repositorio
+
+===== 3. ESTADO ACTUAL =====
+?? avance.txt
+
+===== 4. ULTIMOS 25 COMMITS (todas las ramas) =====
+* 6caa2a0 (HEAD -> feat/antony/agregacion-parquet, origin/feat/antony/agregacion-parquet) fix(pipeline): ignorar detecciones duplicadas entre tramos solapados
+* 4179008 feat(pipeline): agregación diaria por celda y sensor a Parquet con tests
+*   720a18f (origin/develop, develop) Merge pull request #10 from averas232-pixel/feat/antony/ingesta-firms
+|\  
+| * 6b04d74 (origin/feat/antony/ingesta-firms, feat/antony/ingesta-firms) feat(pipeline): descarga reanudable de detecciones FIRMS y documentación de datos
+|/  
+*   4e34728 Merge pull request #1 from averas232-pixel/feat/antony/docs-onboarding
+|\  
+| * 907d1a6 (origin/feat/antony/docs-onboarding, feat/antony/docs-onboarding) docs: esqueleto de documentación, onboarding y atajos de ejecución
+|/  
+* 36b0d49 (tag: prep-v0.0, origin/main, origin/HEAD, main) chore: estructura inicial del repositorio
+
+===== 5. ARCHIVOS DEL PROYECTO (sin .git, venv, datos crudos) =====
+      48 B  .env
+      14 B  .env.example
+      90 B  .gitignore
+   2,719 B  avance.txt
+     598 B  README.md
+     564 B  tasks.ps1
+     125 B  .github\pull_request_template.md
+      37 B  .pytest_cache\.gitignore
+     191 B  .pytest_cache\CACHEDIR.TAG
+     302 B  .pytest_cache\README.md
+     257 B  .pytest_cache\v\cache\nodeids
+       0 B  backend\.gitkeep
+ 127,416 B  data\processed\daily_cells_MODIS_SP.parquet
+ 105,192 B  data\processed\daily_cells_VIIRS_SNPP_SP.parquet
+       0 B  data-pipeline\.gitkeep
+   4,207 B  data-pipeline\aggregate.py
+   4,181 B  data-pipeline\firms_download.py
+      26 B  data-pipeline\requirements-dev.txt
+      29 B  data-pipeline\requirements.txt
+   1,984 B  data-pipeline\tests\test_aggregate.py
+   6,037 B  data-pipeline\tests\__pycache__\test_aggregate.cpython-313-pytest-9.2.0.pyc
+   5,947 B  data-pipeline\__pycache__\aggregate.cpython-313.pyc
+     484 B  docs\ARCHITECTURE.md
+   1,862 B  docs\DATA.md
+     709 B  docs\DECISIONS.md
+     488 B  docs\ONBOARDING.md
+     140 B  docs\STATUS.md
+       0 B  frontend\.gitkeep
+
+===== 6. TAMANO DE data\ =====
+processed: 2 archivos, 0.2 MB
+MODIS_SP: 549 archivos, 14.0 MB
+VIIRS_SNPP_SP: 114 archivos, 10.8 MB
+
+===== 7. CONTENIDO CLAVE (primeras lineas) =====
+
+--- README.md ---
+# PROMETEO-9
+
+Calendario armonizado de actividad de quema (MODIS + VIIRS) por área de interés.
+
+**Equipo:** Antony Vera Sánchez · Yover
+**Reto:** Harmonization of MODIS and VIIRS Hot Spots (NASA Space Apps 2026)
+
+## Declaración de trabajo previo
+Preparación hecha antes del hackathon (desde 2026-11-02): estructura, pipeline base y prototipo.
+Todo lo construido durante el hackathon (14-15 nov) se marcará con el tag `hackathon-start`.
+
+## Estructura
+- `data-pipeline/`: ingesta, agregación y armonización de datos
+- `backend/`: API
+- `frontend/`: aplicación web
+- `docs/`: documentación
+
+--- docs\DECISIONS.md ---
+# Decisiones
+
+- DuckDB + Parquet: no requiere servidor de base de datos, es fácil de correr y de demostrar.
+- Ramas: main (estable), develop (integración), feat/<nombre>/<tema> (trabajo).
+- Grilla de 0.25 grados (~27 km): los conteos por celda son estables al comparar MODIS (1 km) con VIIRS (375 m). El tamaño es un parámetro (`--cell` en aggregate.py).
+- Se guardan `n_det` (todas las detecciones) y `n_conf` (confianza nominal o alta) por separado, porque la confianza de MODIS (0-100) y la de VIIRS (letras) no son comparables. Se decide cuál usar en la armonización.
+- Un Parquet por fuente (`data/processed/daily_cells_<FUENTE>.parquet`): permite agregar MODIS mientras VIIRS sigue descargando.
+
+--- data-pipeline\requirements.txt ---
+requests
+python-dotenv
+duckdb
+
+===== 8. TESTS =====
+...                                                                      [100%]
+3 passed in 2.02s
+
+===== 9. RESUMEN DE PARQUETS =====
+sensor | desde | hasta | filas | detecciones | conf>=nominal | FRP total (MW)
+MODIS | 2012-01-20 | 2020-01-10 | 20967 | 52207 | 49554 | 1490579.0
+VIIRS_SNPP | 2012-01-20 | 2020-01-10 | 14286 | 35131 | 33877 | 287580.0

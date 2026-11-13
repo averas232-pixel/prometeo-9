@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PROMETEO-9 · Earth Observation Platform</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <img src="logo.png" alt="Prometeo Logo" class="brand-logo">
+      <div>
+        <h1>PROMETEO-9</h1>
+        <span class="subtitle">THERMAL ANOMALY HARMONIZATION RADAR</span>
+      </div>
+    </div>
+    
+    <div class="stats">
+      <div class="utc-time">
+        <span id="utc-date">--- --, ----</span>
+        <span id="utc-clock">--:--:-- UTC</span>
+      </div>
+      <div class="divider"></div>
+      <div id="metrics-container">
+        <span class="status-text" style="color:var(--accent-amber)">CARGANDO TELEMETRÍA...</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="map-wrapper" id="map-wrapper">
+      <div id="map"></div>
+      
+      <div class="map-tools">
+        <button id="btn-base-map" class="tool-btn" onclick="toggleBaseMap()">CAPA: ESRI</button>
+        <button id="btn-layer-type" class="tool-btn" onclick="toggleLayerType()">MODO: CALOR</button>
+      </div>
+
+      <!-- WIDGET DE ANIMACIÓN SATELITAL (MÁS GRANDE) -->
+      <div class="satellite-widget">
+        <div class="sat-header">
+          <span class="pulse-dot-red"></span> SAT-9 UPLINK
+        </div>
+        <div class="sat-animation-container">
+          <!-- Tu GIF se verá aquí. Si no existe, saldrá el SVG -->
+          <img src="satellite.gif" alt="Satélite" class="sat-icon-gif" onerror="this.style.display='none'; document.getElementById('sat-svg-fallback').style.display='block';">
+          <svg id="sat-svg-fallback" class="sat-icon" style="display:none;" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M13 7L9 3 5 7l4 4"></path><path d="M17 11l4 4-4 4-4-4"></path><path d="M13 17l4 4 4-4-4-4"></path><path d="M7 13l-4 4 4 4 4-4"></path><rect x="10" y="10" width="4" height="4" rx="1"></rect>
+          </svg>
+          <div class="scan-beam"></div>
+        </div>
+        <div class="sat-data">
+          <div class="sat-data-row"><span>ALT:</span> <span id="sat-alt">705.4 km</span></div>
+          <div class="sat-data-row"><span>VEL:</span> <span id="sat-vel">7.59 km/s</span></div>
+          <div class="sat-data-row"><span>SIG:</span> <span class="signal-bars">▂▄▆█</span></div>
+        </div>
+      </div>
+
+      <div class="map-hud-bottom">
+        <div class="hud-card">
+          <div class="hud-row">
+            <span>LEYENDA TÉRMICA</span>
+            <div class="thermal-bar"></div>
+          </div>
+          <div class="thermal-labels"><span>BAJA</span><span>CRÍTICA</span></div>
+        </div>
+        <div class="hud-card coords-card">
+          <span id="cursor-coords">LAT --.-- | LON --.--</span>
+        </div>
+      </div>
+    </div>
+
+    <aside>
+      <div class="module">
+        <div class="module-header"><span class="module-num">01</span><h3>VENTANA TEMPORAL</h3></div>
+        <label>Fecha de Observación Orbital</label>
+        <input type="date" id="date" onchange="loadCells()">
+        <div class="btn-row">
+          <button class="btn-secondary" onclick="stepDate(-1)">◀ ANT</button>
+          <button class="btn-secondary" onclick="stepDate(1)">SIG ▶</button>
+        </div>
+        <button class="btn-primary" id="btn-play" onclick="togglePlay()">▶ REPRODUCIR SECUENCIA</button>
+      </div>
+
+      <div class="module">
+        <div class="module-header"><span class="module-num">02</span><h3>CALIBRACIÓN DE SENSORES</h3></div>
+        <label>Nivel de Confianza Radiométrica</label>
+        <select id="minconf" onchange="loadCells()">
+          <option value="1">Todas las detecciones</option>
+          <option value="3" selected>Nominal y Alta (Estándar)</option>
+          <option value="5">Solo Confianza Alta</option>
+        </select>
+        <div class="sensor-pills">
+          <span class="pill" style="color:var(--accent-amber); border-color:var(--accent-amber);">MODIS</span>
+          <span class="pill" style="color:#A77BF3; border-color:#A77BF3;">VIIRS</span>
+        </div>
+        <div class="btn-row">
+          <button class="btn-secondary" id="btn-split" onclick="toggleSplit()">SPLIT</button>
+          <button class="btn-secondary" onclick="loadCells()">↻ SINCRONIZAR</button>
+        </div>
+      </div>
+
+      <div class="module">
+        <div class="module-header"><span class="module-num">03</span><h3>TELEMETRÍA DEL DÍA</h3></div>
+        <div class="chart-container">
+          <canvas id="cmp"></canvas>
+          <div id="cmp-empty" class="empty-state">Sin datos para el periodo seleccionado</div>
+        </div>
+      </div>
+
+      <div class="module">
+        <div class="module-header"><span class="module-num">04</span><h3>HISTORIAL DE CELDA</h3></div>
+        <div class="chart-container">
+          <canvas id="ts"></canvas>
+          <div id="ts-empty" class="empty-state">Seleccione un punto en el mapa para ver el historial</div>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+  <script src="https://unpkg.com/leaflet-sync"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
