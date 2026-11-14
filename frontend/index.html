@@ -8,7 +8,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -41,26 +43,6 @@
       <div class="map-tools">
         <button id="btn-base-map" class="tool-btn" onclick="toggleBaseMap()">CAPA: ESRI</button>
         <button id="btn-layer-type" class="tool-btn" onclick="toggleLayerType()">MODO: CALOR</button>
-      </div>
-
-      <!-- WIDGET DE ANIMACIÓN SATELITAL (MÁS GRANDE) -->
-      <div class="satellite-widget">
-        <div class="sat-header">
-          <span class="pulse-dot-red"></span> SAT-9 UPLINK
-        </div>
-        <div class="sat-animation-container">
-          <!-- Tu GIF se verá aquí. Si no existe, saldrá el SVG -->
-          <img src="satellite.gif" alt="Satélite" class="sat-icon-gif" onerror="this.style.display='none'; document.getElementById('sat-svg-fallback').style.display='block';">
-          <svg id="sat-svg-fallback" class="sat-icon" style="display:none;" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M13 7L9 3 5 7l4 4"></path><path d="M17 11l4 4-4 4-4-4"></path><path d="M13 17l4 4 4-4-4-4"></path><path d="M7 13l-4 4 4 4 4-4"></path><rect x="10" y="10" width="4" height="4" rx="1"></rect>
-          </svg>
-          <div class="scan-beam"></div>
-        </div>
-        <div class="sat-data">
-          <div class="sat-data-row"><span>ALT:</span> <span id="sat-alt">705.4 km</span></div>
-          <div class="sat-data-row"><span>VEL:</span> <span id="sat-vel">7.59 km/s</span></div>
-          <div class="sat-data-row"><span>SIG:</span> <span class="signal-bars">▂▄▆█</span></div>
-        </div>
       </div>
 
       <div class="map-hud-bottom">
@@ -113,6 +95,7 @@
           <canvas id="cmp"></canvas>
           <div id="cmp-empty" class="empty-state">Sin datos para el periodo seleccionado</div>
         </div>
+        <button class="btn-primary" style="margin-top: 12px; font-size: 11px; letter-spacing: 0.5px;" onclick="downloadCSV()">⬇ DESCARGAR CSV DEL DÍA</button>
       </div>
 
       <div class="module">
@@ -122,12 +105,27 @@
           <div id="ts-empty" class="empty-state">Seleccione un punto en el mapa para ver el historial</div>
         </div>
       </div>
+
+      <div class="module">
+        <div class="module-header">
+          <span class="module-num">05</span>
+          <h3>🤖 AI INSIGHTS</h3>
+        </div>
+        <div id="ai-content" style="font-size: 11px; color: var(--text-secondary);">
+          <p style="text-align: center; margin: 20px 0;">Haz clic en un foco de incendio para ver las predicciones de IA.</p>
+        </div>
+      </div>
+
+      <div style="font-size: 9px; color: var(--text-secondary); margin-top: 20px; padding: 15px; border-top: 1px solid var(--border); text-align: justify; line-height: 1.5; opacity: 0.8;">
+        Data provided by NASA's Fire Information for Resource Management System (FIRMS) and LANCE. The information is provided "as is".
+      </div>
     </aside>
   </main>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
   <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
-  <script src="https://unpkg.com/leaflet-sync"></script>
+  <script src="https://unpkg.com/leaflet.sync/L.Map.Sync.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="app.js"></script>
 </body>
