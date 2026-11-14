@@ -150,6 +150,7 @@ async function loadCells() {
   cellsAbortController = new AbortController();
   
   try {
+    // Filtro de área
     let url = `${API}/cells?date=${date}&min_conf=${minc}`;
     if (currentBounds) {
         url += `&min_lat=${currentBounds.getSouth()}&max_lat=${currentBounds.getNorth()}&min_lon=${currentBounds.getWest()}&max_lon=${currentBounds.getEast()}`;
@@ -167,44 +168,54 @@ async function loadCells() {
       return;
     }
 
-    if (!currentBounds) {
-        let maxFire = cells[0]; 
-        map.flyTo([maxFire.lat, maxFire.lon], 5, { duration: 1.5 });
-    }
+    // Paleta térmica
+    const thermalGradient = {
+        0.0: '#0000FF', // Azul
+        0.3: '#00FFFF', // Cian
+        0.5: '#00FF00', // Verde
+        0.7: '#FFFF00', // Amarillo
+        0.85: '#FF0000', // Rojo
+        1.0: '#FF00FF'   // Magenta (Crítico)
+    };
 
     if(currentLayerType === 'heat') {
-      // Ajustamos la intensidad del calor al máximo
-      const heatData = cells.map(c => [c.lat, c.lon, Math.min(c.total, 10)]);
-      
+      // Limpieza de datos para evitar errores (Lógica de Yover)
+      const heatData = cells.map(c => {
+          const lat = Number(c.lat);
+          const lon = Number(c.lon);
+          const intensity = Number(c.total) || 1; 
+          return [lat, lon, Math.min(intensity / 3, 1)];
+      }).filter(c => !isNaN(c[0]) && !isNaN(c[1]));
+
+      // Configuración balanceada para que se vea como mancha difuminada
       const heatLayer = L.heatLayer(heatData, { 
-          radius: 40, 
-          blur: 30, 
+          radius: 25, 
+          blur: 20, 
           maxZoom: 9, 
-          max: 10.0, // <--- ESTO ES LA CLAVE
-          minOpacity: 0.6,
-          gradient: {0.2: '#0000FF', 0.4: '#00FFFF', 0.6: '#00FF00', 0.8: '#FFFF00', 1.0: '#FF0000'}
+          minOpacity: 0.3, 
+          gradient: thermalGradient 
       });
       
       const clickLayer = L.layerGroup();
       cells.forEach(c => {
-        let intensity = c.total;
+        let intensity = c.total || 0;
         let colorClass, title, reco;
 
         if (intensity > 15) {
             colorClass = 'alert-rojo'; title = '🔥 CRÍTICO'; 
-            reco = 'Peligro extremo. Evacuación inmediata de la zona.';
+            reco = 'Peligro extremo. Evacuación inmediata de la zona. El fuego se propaga rápido.';
         } else if (intensity > 5) {
             colorClass = 'alert-naranja'; title = '⚠️ ALTO'; 
-            reco = 'Fuego activo. Manténgase alerta.';
+            reco = 'Fuego activo. Manténgase alerta, cierre ventanas y prepárese para evacuar.';
         } else {
             colorClass = 'alert-amarillo'; title = '👀 MODERADO'; 
-            reco = 'Foco incipiente. Monitorear evolución.';
+            reco = 'Foco incipiente. Monitorear evolución. Evitar actividades al aire libre.';
         }
 
         const popupHTML = `
             <div class="fire-popup">
                 <h4>${title}</h4>
-                <p>Detecciones: <b>${intensity}</b> (M:${c.modis} / V:${c.viirs})</p>
+                <p>Detecciones: <b>${intensity}</b> (M:${c.modis || 0} / V:${c.viirs || 0})</p>
                 <div class="recommendation ${colorClass}">${reco}</div>
             </div>
         `;
@@ -217,11 +228,11 @@ async function loadCells() {
       currentLayer = L.layerGroup([heatLayer, clickLayer]).addTo(map);
       
     } else {
-      // MODO PÍXELES (Este siempre se ha visto bien)
+      // MODO PÍXELES
       const pixelLayer = L.layerGroup();
       cells.forEach(c => {
-        let fillColor = c.total > 8 ? '#ff3333' : (c.total > 4 ? '#ff8c00' : '#ffff00');
-        let borderColor = c.total > 4 ? '#ff0000' : '#ffa500';
+        let fillColor = (c.total > 8) ? '#ff3333' : ((c.total > 4) ? '#ff8c00' : '#ffff00');
+        let borderColor = (c.total > 4) ? '#ff0000' : '#ffa500';
         L.rectangle([[c.lat - 0.125, c.lon - 0.125], [c.lat + 0.125, c.lon + 0.125]], { color: borderColor, weight: 0.5, fillColor: fillColor, fillOpacity: 0.85 })
         .bindTooltip(`<div style="color:var(--text-secondary); font-size:10px; margin-bottom:4px">FECHA: ${date}</div><div>MODIS: <b style="color:var(--accent-amber)">${c.modis}</b> | VIIRS: <b style="color:#A77BF3">${c.viirs}</b></div>`, {className: 'leaflet-tooltip-custom', sticky: true})
         .on('click', () => loadTimeseries(c.lat, c.lon))
@@ -230,6 +241,7 @@ async function loadCells() {
       currentLayer = pixelLayer.addTo(map);
     }
 
+    // Gráfico de Barras
     const cmp = await (await fetch(`${API}/compare?date=${date}`)).json();
     const cmpData = [cmp.modis, cmp.viirs, cmp.celdas_ambas, cmp.solo_modis, cmp.solo_viirs];
     
@@ -243,7 +255,7 @@ async function loadCells() {
         cmpChart.update('none');
     }
   } catch(e) { 
-    if (e.name !== 'AbortError') console.error(e); 
+    if (e.name !== 'AbortError') console.error("Error en loadCells:", e); 
   }
 }
 
@@ -275,9 +287,9 @@ async function loadTimeseries(lat, lon) {
         const pred = await predRes.json();
         const anom = await anomRes.json();
         
-        let anomColor = "var(--status-success)"; 
-        if (anom.status === "ALERTA") anomColor = "var(--accent-amber)"; 
-        if (anom.status === "CRÍTICO") anomColor = "var(--status-critical)"; 
+        let anomColor = "var(--status-success)";
+        if (anom.status === "ALERTA") anomColor = "var(--accent-amber)";
+        if (anom.status === "CRÍTICO") anomColor = "var(--status-critical)";
         
         aiContainer.innerHTML = `
           <div style="background: rgba(69, 166, 200, 0.1); border: 1px solid var(--accent-blue); padding: 10px; border-radius: 4px; margin-bottom: 10px;">
@@ -337,8 +349,8 @@ async function toggleSplit() {
     const heatLeft = cells.filter(c => c.modis > 0).map(c => [c.lat, c.lon, Math.min(c.modis / 5, 1)]);
     const heatRight = cells.filter(c => c.viirs > 0).map(c => [c.lat, c.lon, Math.min(c.viirs / 5, 1)]);
     
-    L.heatLayer(heatLeft, {radius: 35, blur: 25, gradient: {1: '#D98E2B'}}).addTo(mapLeft);
-    L.heatLayer(heatRight, {radius: 35, blur: 25, gradient: {1: '#A77BF3'}}).addTo(mapRight);
+    L.heatLayer(heatLeft, {radius: 25, blur: 20, gradient: {1: '#D98E2B'}}).addTo(mapLeft);
+    L.heatLayer(heatRight, {radius: 25, blur: 20, gradient: {1: '#A77BF3'}}).addTo(mapRight);
   } catch(e) { console.error("Error en split", e); }
 }
 

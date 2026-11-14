@@ -9,8 +9,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   
+  <!-- Librerías CSS de Mapas -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
+  
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -122,11 +124,12 @@
     </aside>
   </main>
 
+  <!-- LIBRERÍAS JS FIJADAS A VERSIONES CLÁSICAS (EVITA EL ERROR DE MÓDULOS) -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
-  <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
-  <script src="https://unpkg.com/leaflet.sync/L.Map.Sync.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+  <script src="https://unpkg.com/leaflet.sync@0.2.4/L.Map.Sync.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7"></script>
   <script src="app.js"></script>
 </body>
 </html>
