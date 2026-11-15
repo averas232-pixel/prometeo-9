@@ -10,7 +10,7 @@ from sklearn.neighbors import NearestNeighbors
 
 # --- CORRECCIÓN DE RUTA ---
 BASE_DIR = Path(__file__).resolve().parent.parent
-PARQUET = BASE_DIR / "data" / "processed" / "daily_cells_harmonized.parquet"
+PARQUET = "https://drive.google.com/uc?export=download&id=15WkZTpJexJO2nQ-2xNu3dJY2BIC1Z56i"
 
 if not PARQUET.exists():
     raise RuntimeError(f"Falta daily_cells_harmonized.parquet en: {PARQUET}. Corre harmonize.py.")
