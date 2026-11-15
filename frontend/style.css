@@ -1,0 +1,116 @@
+:root {
+  --nasa-blue: #0B3D91;
+  --nasa-red: #FC3D21;
+  --bg-dark: #060b13;
+  --bg-panel: #0d1622;
+  --bg-card: #111c2e;
+  --border: #1e344d;
+  --text-main: #e0e8f0;
+  --text-muted: #8ba3c7;
+  --font-sans: 'Inter', sans-serif; 
+  --font-mono: 'IBM Plex Mono', monospace;
+  --header-h: 64px;
+  --footer-h: 140px;
+  --sidebar-w: 340px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; background-color: var(--bg-dark); color: var(--text-main); font-family: var(--font-sans); overflow: hidden; }
+
+/* Header */
+.mc-header { height: var(--header-h); background: var(--bg-panel); border-bottom: 2px solid var(--nasa-blue); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 1100; }
+.brand-cluster { display: flex; align-items: center; gap: 12px; }
+.brand-emblem { width: 36px; height: 36px; border-radius: 4px; background: #fff; display: grid; place-items: center; }
+.brand-title { font-family: var(--font-mono); font-weight: 700; font-size: 1.1rem; letter-spacing: 0.1em; color: #fff; }
+.brand-tag { font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; background: rgba(252, 61, 33, 0.2); color: var(--nasa-red); border: 1px solid var(--nasa-red); margin-left: 8px; }
+.brand-subtitle { font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-muted); }
+
+.header-metrics { display: flex; gap: 12px; }
+.metric-pill { background: var(--bg-card); border: 1px solid var(--border); border-radius: 4px; padding: 6px 12px; display: flex; flex-direction: column; }
+.metric-label { font-family: var(--font-mono); font-size: 0.65rem; color: var(--text-muted); }
+.metric-value { font-family: var(--font-mono); font-size: 0.95rem; font-weight: 700; color: var(--nasa-blue); }
+.metric-value.amber { color: #ffb000; }
+.metric-value.red { color: var(--nasa-red); }
+
+.header-actions { display: flex; align-items: center; gap: 10px; }
+.utc-clock-box { background: rgba(11, 61, 145, 0.2); border: 1px solid var(--nasa-blue); border-radius: 4px; padding: 4px 10px; text-align: right; font-family: var(--font-mono); }
+.utc-time { font-size: 0.9rem; font-weight: 700; color: #fff; }
+.utc-date { font-size: 0.65rem; color: var(--text-muted); }
+
+.api-badge { display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 4px; font-family: var(--font-mono); font-size: 0.7rem; font-weight: 600; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted); }
+.pulse-dot { width: 8px; height: 8px; border-radius: 50%; background: #35B879; animation: pulse 1.5s infinite; }
+@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+
+.btn-hud { font-family: var(--font-mono); font-size: 0.75rem; font-weight: 600; padding: 8px 14px; border-radius: 4px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-main); cursor: pointer; }
+.btn-hud:hover { border-color: var(--nasa-blue); background: rgba(11, 61, 145, 0.2); }
+
+/* Workspace */
+.mc-workspace { display: flex; width: 100%; height: calc(100vh - var(--header-h) - var(--footer-h)); }
+.map-stage { flex: 1; height: 100%; display: flex; position: relative; }
+.map-pane { flex: 1; height: 100%; position: relative; }
+#mapPrimary, #mapSecondary { width: 100%; height: 100%; background: #000; z-index: 1; }
+.map-pane.secondary { display: none; border-left: 2px solid var(--nasa-blue); }
+.map-stage.split-active .map-pane.secondary { display: block; }
+
+.map-hud-top-left { position: absolute; top: 16px; left: 60px; z-index: 800; display: flex; gap: 8px; }
+.hud-pill-group { display: inline-flex; background: var(--bg-panel); border: 1px solid var(--border); border-radius: 4px; padding: 4px; }
+.hud-toggle-btn { font-family: var(--font-mono); font-size: 0.7rem; font-weight: 600; padding: 6px 12px; border-radius: 4px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; }
+.hud-toggle-btn.active { background: var(--nasa-blue); color: #fff; }
+
+.map-legend-hud { position: absolute; bottom: 20px; left: 16px; z-index: 800; background: rgba(13, 22, 34, 0.9); border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; }
+.legend-title { font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-muted); margin-bottom: 6px; }
+.thermal-ramp-bar { height: 8px; width: 220px; border-radius: 4px; background: linear-gradient(90deg, #00f0ff, #ffff00, #ff7b00, #FC3D21); margin-bottom: 6px; }
+.legend-scale { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 0.65rem; color: var(--text-muted); }
+
+.bbox-hud-badge { position: absolute; bottom: 20px; right: 16px; z-index: 800; background: rgba(252, 61, 33, 0.2); border: 1px solid var(--nasa-red); border-radius: 6px; padding: 8px 12px; font-family: var(--font-mono); font-size: 0.7rem; color: var(--nasa-red); display: none; align-items: center; gap: 10px; }
+.bbox-hud-badge.visible { display: flex; }
+.bbox-clear-btn { background: var(--nasa-red); color: #fff; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; }
+
+/* Sidebar */
+.mc-sidebar { width: var(--sidebar-w); height: 100%; background: var(--bg-panel); border-left: 1px solid var(--border); overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+.mc-module { background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; padding: 14px; }
+.module-header { display: flex; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+.module-title { font-family: var(--font-mono); font-size: 0.8rem; font-weight: 700; color: #fff; }
+.module-num { color: var(--nasa-blue); margin-right: 6px; }
+.module-num.amber { color: #ffb000; }
+
+.temporal-grid { margin-bottom: 10px; }
+.date-input-nasa { width: 100%; background: var(--bg-dark); border: 1px solid var(--border); color: #fff; padding: 8px; border-radius: 4px; font-family: var(--font-mono); color-scheme: dark; }
+.preset-row { display: flex; gap: 8px; }
+.chip-btn { flex: 1; font-family: var(--font-mono); font-size: 0.7rem; padding: 6px; border-radius: 4px; background: var(--bg-dark); border: 1px solid var(--border); color: var(--text-muted); cursor: pointer; }
+.chip-btn:hover { border-color: var(--nasa-blue); color: #fff; }
+
+.chart-wrapper { height: 140px; position: relative; }
+
+.ai-box { background: var(--bg-dark); border: 1px solid var(--border); border-radius: 6px; padding: 12px; }
+.ai-top-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.ai-prob-label { font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-muted); }
+.ai-prob-value { font-family: var(--font-mono); font-size: 1.4rem; font-weight: 700; color: #fff; }
+.ai-status-badge { font-family: var(--font-mono); font-size: 0.7rem; padding: 4px 8px; border-radius: 4px; border: 1px solid #35B879; color: #35B879; }
+.ai-status-badge.critico { border-color: var(--nasa-red); color: var(--nasa-red); }
+.ai-status-badge.alerta { border-color: #ffb000; color: #ffb000; }
+.ai-meter-bg { width: 100%; height: 6px; background: rgba(255, 255, 255, 0.1); border-radius: 3px; overflow: hidden; margin-bottom: 10px; }
+.ai-meter-fill { height: 100%; width: 0%; background: #35B879; transition: width 0.3s; }
+.ai-meta-text { font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-muted); line-height: 1.5; }
+
+/* Calendario */
+.mc-bottom-panel { height: var(--footer-h); background: var(--bg-panel); border-top: 2px solid var(--nasa-blue); padding: 10px 20px; display: flex; flex-direction: column; }
+.calendar-header { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted); margin-bottom: 8px; }
+.calendar-header h3 { color: #fff; font-size: 0.8rem; }
+.calendar-grid { display: flex; flex-direction: column; gap: 4px; overflow-x: auto; }
+.cal-row { display: flex; align-items: center; gap: 4px; }
+.cal-year { width: 40px; font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-muted); }
+.cal-cells { display: flex; gap: 4px; flex: 1; }
+.cal-cell { flex: 1; height: 12px; border-radius: 2px; background: #1a2a38; border: 1px solid transparent; cursor: pointer; transition: transform 0.1s; }
+.cal-cell:hover { transform: scale(1.3); z-index: 10; border-color: #fff; }
+
+/* Popups */
+.leaflet-popup-content-wrapper { background: var(--bg-panel) !important; color: #fff !important; border: 1px solid var(--border); border-radius: 6px !important; }
+.leaflet-popup-tip { background: var(--bg-panel) !important; }
+.fire-popup-card { padding: 12px; font-family: var(--font-mono); }
+.fire-popup-banner { padding: 6px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; margin-bottom: 10px; }
+.fire-popup-banner.red { background: rgba(252, 61, 33, 0.2); border: 1px solid var(--nasa-red); color: var(--nasa-red); }
+.fire-popup-banner.orange { background: rgba(255, 176, 0, 0.2); border: 1px solid #ffb000; color: #ffb000; }
+.fire-popup-banner.yellow { background: rgba(255, 255, 0, 0.2); border: 1px solid #ffff00; color: #ffff00; }
+.fire-popup-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.7rem; border-top: 1px solid var(--border); padding-top: 8px; }
+.fire-popup-item span { display: block; color: var(--text-muted); font-size: 0.65rem; }

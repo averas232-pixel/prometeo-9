@@ -1,0 +1,37 @@
+__pycache__/
+.venv/
+node_modules/
+dist/
+.env
+data/raw/
+data/processed/
+*.parquet
+.DS_Store
+
+# Archivos temporales y dumps de texto
+*.txt
+*.log
+dump-repo.ps1
+prometeo9-dump.txt
+repo-dump.txt
+estructura_proyecto.txt
+
+# Entorno virtual
+.venv/
+
+# Datos pesados
+data/processed/*.parquet
+data/raw/*
+*.csv
+
+# Node
+node_modules/
+prometeo9-dump.txt
+*.txt
+.venv/
+node_modules/
+data/processed/*.parquet
+data/raw/*
+
+*.txt
+repo-dump.txt

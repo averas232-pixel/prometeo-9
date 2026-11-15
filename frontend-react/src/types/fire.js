@@ -1,0 +1,2 @@
+export const SENSOR_TYPES = { MODIS: 'MODIS', VIIRS: 'VIIRS' };
+export const ALERT_LEVELS = { CRITICAL: 'CRÍTICO', WARNING: 'ALERTA', NORMAL: 'NORMAL' };

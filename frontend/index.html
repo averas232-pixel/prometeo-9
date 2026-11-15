@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PROMETEO-9 // NASA FIRMS & LANCE Mission Control</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" crossorigin="" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header class="mc-header">
+    <div class="brand-cluster">
+      <div class="brand-emblem">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0B3D91" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path><path d="M2 12h20"></path></svg>
+      </div>
+      <div class="brand-title-group">
+        <div class="brand-title">
+          PROMETEO-9
+          <span class="brand-tag">FIRMS // LANCE</span>
+        </div>
+        <div class="brand-subtitle">HARMONIZED BURNING ACTIVITY CALENDAR</div>
+      </div>
+    </div>
+
+    <div class="header-metrics">
+      <div class="metric-pill">
+        <span class="metric-label">FOCOS ACTIVOS</span>
+        <span class="metric-value" id="hdrTotalFires">0</span>
+      </div>
+      <div class="metric-pill">
+        <span class="metric-label">FRP TOTAL</span>
+        <span class="metric-value amber" id="hdrTotalFrp">0.0 MW</span>
+      </div>
+      <div class="metric-pill">
+        <span class="metric-label">ALERTAS</span>
+        <span class="metric-value red" id="hdrCriticalCount">0</span>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <div class="api-badge online" id="apiStatusBadge">
+        <span class="pulse-dot"></span>
+        <span id="apiStatusText">API LIVE</span>
+      </div>
+
+      <button type="button" class="btn-hud" id="btnSplitView" title="Dividir mapa MODIS / VIIRS">
+        SPLIT MODIS/VIIRS
+      </button>
+      <button type="button" class="btn-hud" id="btnExportCsv" title="Descargar CSV">
+        DESCARGAR CSV
+      </button>
+
+      <div class="utc-clock-box">
+        <div class="utc-time" id="utcTime">00:00:00 UTC</div>
+        <div class="utc-date" id="utcDate">YYYY-MM-DD</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="mc-workspace">
+    <section class="map-stage" id="mapStage">
+      <div class="map-pane primary">
+        <div class="split-sensor-banner modis">SENSOR IZQUIERDO // MODIS</div>
+        <div id="mapPrimary"></div>
+
+        <div class="map-hud-top-left">
+          <div class="hud-pill-group">
+            <button type="button" class="hud-toggle-btn active" data-layer="esri">ESRI SATÉLITE</button>
+            <button type="button" class="hud-toggle-btn" data-layer="nasa">NASA GIBS</button>
+          </div>
+          <div class="hud-pill-group">
+            <button type="button" class="hud-toggle-btn active" data-mode="heat">MODO CALOR</button>
+            <button type="button" class="hud-toggle-btn" data-mode="pixels">MODO PÍXELES</button>
+          </div>
+        </div>
+
+        <div class="map-legend-hud">
+          <div class="legend-title"><span>DENSIDAD TÉRMICA (Detecciones)</span></div>
+          <div class="thermal-ramp-bar"></div>
+          <div class="legend-scale"><span>BAJA</span><span>MEDIA</span><span>ALTA</span><span>CRÍTICA</span></div>
+        </div>
+
+        <div class="bbox-hud-badge" id="bboxHudBadge">
+          <span id="bboxCoordsText">BBOX FILTRO ACTIVO</span>
+          <button type="button" class="bbox-clear-btn" id="btnClearBbox">LIMPIAR</button>
+        </div>
+      </div>
+
+      <div class="map-pane secondary">
+        <div class="split-sensor-banner viirs">SENSOR DERECHO // VIIRS</div>
+        <div id="mapSecondary"></div>
+      </div>
+    </section>
+
+    <aside class="mc-sidebar">
+      <section class="mc-module">
+        <div class="module-header">
+          <h2 class="module-title"><span class="module-num">01</span> VENTANA TEMPORAL</h2>
+        </div>
+        <div class="temporal-grid">
+          <input type="date" id="datePicker" class="date-input-nasa" onchange="loadDataForDate(this.value)" />
+        </div>
+        <div class="preset-row">
+          <button class="chip-btn" onclick="stepDate(-1)">◀ ANT</button>
+          <button class="chip-btn" id="btnPlay" onclick="togglePlay()">▶ REPRODUCIR</button>
+          <button class="chip-btn" onclick="stepDate(1)">SIG ▶</button>
+        </div>
+      </section>
+
+      <section class="mc-module">
+        <div class="module-header">
+          <h2 class="module-title"><span class="module-num">02</span> COMPARACIÓN SENSORES</h2>
+        </div>
+        <div class="chart-wrapper"><canvas id="sensorChart"></canvas></div>
+      </section>
+
+      <section class="mc-module amber-top">
+        <div class="module-header">
+          <h2 class="module-title"><span class="module-num amber">03</span> IA // PREDICCIÓN (KNN)</h2>
+        </div>
+        <div class="ai-box">
+          <div class="ai-top-row">
+            <div>
+              <div class="ai-prob-label">PROBABILIDAD DE REINCIDENCIA</div>
+              <div class="ai-prob-value" id="aiProbValue">-- %</div>
+            </div>
+            <span class="ai-status-badge" id="aiStatusBadge">EN ESPERA</span>
+          </div>
+          <div class="ai-meter-bg"><div class="ai-meter-fill" id="aiMeterFill"></div></div>
+          <div class="ai-meta-text" id="aiSummaryText">Haz clic en un foco para ejecutar la IA.</div>
+        </div>
+      </section>
+    </aside>
+  </main>
+
+  <!-- CALENDARIO INFERIOR -->
+  <footer class="mc-bottom-panel">
+    <div class="calendar-header">
+      <h3>CALENDARIO DE QUEMAS HISTÓRICO (2012 - 2020)</h3>
+      <span id="calHoverDetail">Pasa el cursor sobre un mes para ver detalles</span>
+    </div>
+    <div class="calendar-grid" id="burnCalendarGrid">
+      <!-- Generado por JS -->
+    </div>
+  </footer>
+
+  <div class="mc-toast" id="mcToast"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+  <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7"></script>
+  <script src="app.js"></script>
+</body>
+</html>

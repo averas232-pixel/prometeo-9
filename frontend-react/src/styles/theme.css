@@ -1,0 +1,43 @@
+/* Importar fuentes PRIMERO (regla estricta de CSS) */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --bg-deep:        #060B14;   /* fondo general casi negro azulado */
+  --bg-panel:       #0A1220;   /* sidebar y paneles */
+  --bg-card:        #0E1A2B;   /* tarjetas */
+  --border:         #1B2E45;   /* bordes sutiles */
+  --border-active:  #00D5F2;   /* borde neón al activo */
+
+  --cyan:           #00D5F2;
+  --cyan-soft:      #0B3D91;
+  --green:          #00D68F;
+  --orange:         #FF9D00;
+  --red:            #FF354D;
+  --text:           #E2E8F0;
+  --text-dim:       #64748B;
+
+  --glow-cyan:   0 0 12px rgba(0,213,242,.45);
+  --glow-red:    0 0 12px rgba(255,53,77,.45);
+  --glow-orange: 0 0 12px rgba(255,157,0,.45);
+  --glow-green:  0 0 12px rgba(0,214,143,.45);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', sans-serif;
+  color: var(--text);
+  background-color: var(--bg-deep);
+  /* Gradiente radial para simular la atmósfera/espacio */
+  background-image: 
+    radial-gradient(circle at 50% -20%, rgba(11, 61, 145, 0.4) 0%, transparent 60%),
+    radial-gradient(circle at 10% 110%, rgba(0, 213, 242, 0.05) 0%, transparent 50%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  overflow: hidden; /* Evita scroll global, cada panel tendrá el suyo */
+}
+
+/* Clase utilitaria para textos numéricos */
+.font-mono {
+  font-family: 'IBM Plex Mono', monospace;
+}
